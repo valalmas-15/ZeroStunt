@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Deteksi Makanan</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            text-align: center; 
+        }
+        #preview { 
+            max-width: 100%; 
+            margin: 20px 0; 
+        }
+        #result { 
+            margin-top: 20px; 
+            font-weight: bold; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Deteksi Jenis Makanan</h1>
+    <input type="file" id="imageUpload" accept="image/*">
+    <img id="preview" style="display:none;">
+    <div id="result"></div>
+
+    <script>
+        const uploadInput = document.getElementById('imageUpload');
+        const preview = document.getElementById('preview');
+        const resultDiv = document.getElementById('result');
+
+        uploadInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Tampilkan preview
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = 'block';
+
+                // Kirim ke server
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.prediction) {
+                        resultDiv.innerHTML = `
+                            Prediksi: ${data.prediction}<br>
+                            Akurasi: ${(data.confidence * 100).toFixed(2)}%
+                        `;
+                    } else {
+                        resultDiv.innerHTML = 'Gagal melakukan prediksi';
+                    }
+                })
+                .catch(error => {
+                    resultDiv.innerHTML = 'Terjadi kesalahan: ' + error;
+                });
+            }
+        });
+    </script>
+</body>
+</html>
