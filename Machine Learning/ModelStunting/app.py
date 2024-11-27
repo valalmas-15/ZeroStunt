@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify
-import tensorflow as tf
-import pandas as pd
 import numpy as np
-import tensorflow_decision_forests as tfdf
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from tensorflow.keras.models import load_model
+import random
 
 app = Flask(__name__)
 
