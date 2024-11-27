@@ -1,0 +1,5 @@
+Flask== 3.0.3
+Numpy== 2.0.2
+Pandas== 2.2.3
+Scikit-learn== 1.5.2
+TensorFlow== 2.18.0
