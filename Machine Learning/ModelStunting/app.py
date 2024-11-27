@@ -1,23 +1,20 @@
-import streamlit as st
+from flask import Flask, request, jsonify
 import tensorflow as tf
 import pandas as pd
 import numpy as np
 import tensorflow_decision_forests as tfdf
 
+app = Flask(__name__)
+
 # Load Model TensorFlow Decision Forests
 model = tf.saved_model.load("model")  # Pastikan path sudah sesuai
 
 # Nilai min dan max dari data training
-min_age = 0
-max_age = 1
-min_birth_weight = 0
-max_birth_weight = 1
-min_birth_length = 0
-max_birth_length = 1
-min_body_weight = 0
-max_body_weight = 1
-min_body_length = 0
-max_body_length = 1
+min_age, max_age = 0, 1
+min_birth_weight, max_birth_weight = 0, 1
+min_birth_length, max_birth_length = 0, 1
+min_body_weight, max_body_weight = 0, 1
+min_body_length, max_body_length = 0, 1
 
 # Fungsi normalisasi
 def normalize(value, min_val, max_val):
@@ -25,10 +22,7 @@ def normalize(value, min_val, max_val):
 
 # Fungsi prediksi
 def predict_stunting(data):
-    # Menyesuaikan DataFrame dengan nama kolom yang benar
     df = pd.DataFrame([data])
-    
-    # Memisahkan kolom-kolom input dan mengonversinya menjadi tensor
     input_data = {
         "Age": tf.convert_to_tensor(df["Age"], dtype=tf.float32),
         "BMI": tf.convert_to_tensor(df["BMI"], dtype=tf.float32),
@@ -40,47 +34,41 @@ def predict_stunting(data):
         "Length_Diff": tf.convert_to_tensor(df["Length_Diff"], dtype=tf.float32),
         "Weight_Diff": tf.convert_to_tensor(df["Weight_Diff"], dtype=tf.float32)
     }
-    
-    # Menyusun input dalam format yang sesuai dengan signature
     infer_fn = model.signatures["serving_default"]
-    
-    # Melakukan prediksi dengan model
-    predictions = infer_fn(**input_data)  # Menggunakan input sebagai keyword arguments
-    
-    # Mengambil hasil prediksi (sesuaikan dengan nama output model Anda)
+    predictions = infer_fn(**input_data)
     stunting_prediction = int(predictions["output_1"][0] > 0.7)  # Sesuaikan nama output
     return "stunting" if stunting_prediction == 1 else "tidak stunting"
 
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        data = request.json
+        gender = 0 if data["Gender"].lower() == "male" else 1
+        age = normalize(data["Age"], min_age, max_age)
+        birth_weight = normalize(data["Birth_Weight"], min_birth_weight, max_birth_weight)
+        birth_length = normalize(data["Birth_Length"], min_birth_length, max_birth_length)
+        body_weight = normalize(data["Body_Weight"], min_body_weight, max_body_weight)
+        body_length = normalize(data["Body_Length"], min_body_length, max_body_length)
+        
+        bmi = body_weight / ((body_length / 100) ** 2)
+        weight_diff = body_weight - birth_weight
+        length_diff = body_length - birth_length
+        
+        input_data = {
+            "Gender": gender,
+            "Age": age,
+            "Birth_Weight": birth_weight,
+            "Birth_Length": birth_length,
+            "Body_Weight": body_weight,
+            "Body_Length": body_length,
+            "BMI": bmi,
+            "Weight_Diff": weight_diff,
+            "Length_Diff": length_diff
+        }
+        prediction = predict_stunting(input_data)
+        return jsonify({"prediction": prediction})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
-# Streamlit App
-st.title("Prediksi Stunting dengan GradientBoostedTree Model")
-
-# Input dari pengguna
-gender = st.selectbox("Jenis Kelamin", ["Male", "Female"])
-age = st.number_input("Usia (dalam bulan)",step=1)
-birth_weight = st.number_input("Berat Lahir (kg)",step=0.1)
-birth_length = st.number_input("Panjang Lahir (cm)",step=0.5)
-body_weight = st.number_input("Berat Badan (kg)", step=0.1)
-body_length = st.number_input("Panjang Badan (cm)",step=0.5)
-
-if st.button("Prediksi"):
-    # Normalisasi input sesuai skala data training
-    data_baru = {
-        "Gender": 0 if gender == "Male" else 1,
-        "Age": normalize(age, min_age, max_age),
-        "Birth_Weight": normalize(birth_weight, min_birth_weight, max_birth_weight),
-        "Birth_Length": normalize(birth_length, min_birth_length, max_birth_length),
-        "Body_Weight": normalize(body_weight, min_body_weight, max_body_weight),
-        "Body_Length": normalize(body_length, min_body_length, max_body_length)
-    }
-    
-    # Menghitung BMI
-    data_baru["BMI"] = data_baru["Body_Weight"] / ((data_baru["Body_Length"]/100) ** 2)
-
-    # Menghitung Weight_Diff dan Length_Diff
-    data_baru["Weight_Diff"] = data_baru["Body_Weight"] - data_baru["Birth_Weight"]
-    data_baru["Length_Diff"] = data_baru["Body_Length"] - data_baru["Birth_Length"]
-    
-    # Prediksi stunting
-    hasil_prediksi = predict_stunting(data_baru)
-    st.write("Prediksi Stunting:", hasil_prediksi)
+if __name__ == '__main__':
+    app.run(debug=True)
