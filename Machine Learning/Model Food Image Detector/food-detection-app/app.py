@@ -14,6 +14,11 @@ MODEL_PATH = 'model_makanan.h5'
 model = load_model(MODEL_PATH)
 model_2 = load_model('model_rekomendasi.h5')
 foods_df = pd.read_csv('foods.csv')
+standard_nutrition_df = pd.read_csv('standard-nutrition.csv') 
+
+# Initialize and fit TF-IDF
+tfidf = TfidfVectorizer()
+tfidf.fit(foods_df['Menu'])
 
 CLASS_LABELS = [
   'air', 'anggur', 'apel', 'ayam', 'bakso', 'bakwan', 'batagor',
@@ -71,7 +76,7 @@ def predict():
         input_features = tfidf.transform(input_foods).toarray()
         
         # Predict food names
-        predictions = model.predict(input_features)
+        predictions = model_2.predict(input_features)
         predicted_classes = [foods_df.iloc[np.argmax(pred)] for pred in predictions]
         
         # Initialize total_nutrition with zero for each nutrient column in standard_nutrition
@@ -85,9 +90,7 @@ def predict():
         # Evaluate nutrition (dummy function, replace with actual)
         evaluation = {nutrient: "Sufficient" for nutrient in total_nutrition.keys()}
         
-        # Generate summary
-        summary = generate_summary(evaluation, standard_nutrition_df)
-        response = {"summary": summary}
+        response = total_nutrition
         
         
         return jsonify(response)
