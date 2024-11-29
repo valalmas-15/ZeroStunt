@@ -1,6 +1,8 @@
 import os
 import numpy as np
+import pandas as pd
 from flask import Flask, request, render_template, jsonify
+from sklearn.feature_extraction.text import TfidfVectorizer
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.inception_v3 import preprocess_input
@@ -10,6 +12,8 @@ app = Flask(__name__)
 # Load the pre-trained model
 MODEL_PATH = 'model_makanan.h5'
 model = load_model(MODEL_PATH)
+model_2 = load_model('model_rekomendasi.h5')
+foods_df = pd.read_csv('foods.csv')
 
 CLASS_LABELS = [
   'air', 'anggur', 'apel', 'ayam', 'bakso', 'bakwan', 'batagor',
@@ -56,15 +60,37 @@ def predict():
         # Dapatkan label dengan probabilitas tertinggi
         top_prediction_index = np.argmax(predictions[0])
         top_label = CLASS_LABELS[top_prediction_index]
-        confidence = float(predictions[0][top_prediction_index])
         
         # Hapus file sementara
         os.remove(file_path)
         
-        return jsonify({
-            'prediction': top_label,
-            'confidence': confidence
-        })
+        data = request.get_json()
+        input_foods = top_label
+
+        # Convert input foods to TF-IDF features
+        input_features = tfidf.transform(input_foods).toarray()
+        
+        # Predict food names
+        predictions = model.predict(input_features)
+        predicted_classes = [foods_df.iloc[np.argmax(pred)] for pred in predictions]
+        
+        # Initialize total_nutrition with zero for each nutrient column in standard_nutrition
+        total_nutrition = {nutrient: 0 for nutrient in standard_nutrition_df['Nutrisi'] if nutrient in foods_df.columns}
+
+        # Sum nutrition values for detected foods
+        for food in predicted_classes:
+            for nutrient in total_nutrition.keys():
+                total_nutrition[nutrient] += food.get(nutrient, 0)  # Safely sum nutrient values
+
+        # Evaluate nutrition (dummy function, replace with actual)
+        evaluation = {nutrient: "Sufficient" for nutrient in total_nutrition.keys()}
+        
+        # Generate summary
+        summary = generate_summary(evaluation, standard_nutrition_df)
+        response = {"summary": summary}
+        
+        
+        return jsonify(response)
     
     except Exception as e:
         # Hapus file jika terjadi kesalahan
