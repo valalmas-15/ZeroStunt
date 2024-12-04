@@ -1,25 +1,21 @@
-FROM python:3.9-slim
+# Gunakan image dasar Python
+FROM python:3.12-slim
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements dan install dependencies
-COPY requirements.txt .
+# Salin file requirements.txt dan install dependencies
+COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy seluruh kode aplikasi
+# Salin semua file aplikasi ke dalam container
 COPY . .
 
 # Buat direktori uploads
-RUN mkdir -p uploads
+RUN mkdir uploads
 
-# Port yang digunakan
+# Expose port yang digunakan oleh Flask
 EXPOSE 5000
 
-# Jalankan aplikasi
+# Perintah untuk menjalankan aplikasi Flask
 CMD ["python", "app.py"]
