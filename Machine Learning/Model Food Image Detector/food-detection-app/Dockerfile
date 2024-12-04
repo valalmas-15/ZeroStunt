@@ -1,21 +1,20 @@
-# Gunakan image dasar Python
-FROM python:3.12-slim
+FROM python:3.11
+
+# Install distutils jika diperlukan
+RUN apt-get update && apt-get install -y python3-distutils
+
+# Upgrade pip dan setuptools
+RUN pip install --upgrade pip setuptools
 
 # Set working directory
 WORKDIR /app
 
-# Salin file requirements.txt dan install dependencies
-COPY requirements.txt requirements.txt
+# Copy requirements.txt dan install dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Salin semua file aplikasi ke dalam container
+# Copy sisa aplikasi
 COPY . .
 
-# Buat direktori uploads
-RUN mkdir uploads
-
-# Expose port yang digunakan oleh Flask
-EXPOSE 5000
-
-# Perintah untuk menjalankan aplikasi Flask
+# Command untuk menjalankan aplikasi
 CMD ["python", "app.py"]
