@@ -15,4 +15,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 5000
 
 # Jalankan aplikasi Flask
-CMD ["python", "app.py"]
+CMD ["python", "app.py", "run", "--host=0.0.0.0"]
