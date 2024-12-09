@@ -1,21 +1,32 @@
-# Gunakan image dasar Python
-FROM python:3.12-slim
+# Gunakan base image Python 3.11 slim untuk image yang ringan
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1  
+ENV PYTHONUNBUFFERED=1         
+
+# Install dependencies sistem yang diperlukan
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-distutils \
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip, setuptools, dan wheel
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
 # Set working directory
 WORKDIR /app
 
-# Salin file requirements.txt dan install dependencies
-COPY requirements.txt requirements.txt
+# Copy file requirements.txt dan install dependencies aplikasi
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Salin semua file aplikasi ke dalam container
+# Copy seluruh kode aplikasi
 COPY . .
 
-# Buat direktori uploads
-RUN mkdir uploads
+# Expose port (opsional, jika aplikasi berjalan di server)
+# EXPOSE 8000
 
-# Expose port yang digunakan oleh Flask
-EXPOSE 5000
-
-# Perintah untuk menjalankan aplikasi Flask
+# Command untuk menjalankan aplikasi
 CMD ["python", "app.py"]

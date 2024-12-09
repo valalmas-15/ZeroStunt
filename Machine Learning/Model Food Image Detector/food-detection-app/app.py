@@ -1,34 +1,44 @@
 import os
 import numpy as np
 import pandas as pd
+import logging
 from flask import Flask, request, render_template, jsonify
 from sklearn.feature_extraction.text import TfidfVectorizer
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.inception_v3 import preprocess_input
+from werkzeug.utils import secure_filename
+
+# Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Load the pre-trained model
-MODEL_PATH = 'model_makanan.h5'
-model = load_model(MODEL_PATH)
+# Load models and data
+model = load_model('model_makanan.h5')
 model_2 = load_model('model_rekomendasi.h5')
 foods_df = pd.read_csv('foods.csv')
-standard_nutrition_df = pd.read_csv('standard-nutrition.csv') 
+standard_nutrition_df = pd.read_csv('standard-nutrition.csv')
 
-# Initialize and fit TF-IDF
+# Initialize TF-IDF
 tfidf = TfidfVectorizer()
 tfidf.fit(foods_df['Menu'])
 
 CLASS_LABELS = [
-  'air', 'anggur', 'apel', 'ayam', 'bakso', 'bakwan', 'batagor',
-  'bubur', 'burger', 'cakwe', 'capcay', 'crepes', 'cumi', 'donat',
-  'durian', 'es_krim', 'fu_yung_hai', 'gudeg', 'ikan', 'jeruk',
-  'kacang', 'kebab', 'kentang', 'kerupuk', 'kopi'
+    'air', 'anggur', 'apel', 'ayam', 'bakso', 'bakwan', 'batagor',
+    'bubur', 'burger', 'cakwe', 'capcay', 'crepes', 'cumi', 'donat',
+    'durian', 'es_krim', 'fu_yung_hai', 'gudeg', 'ikan', 'jeruk',
+    'kacang', 'kebab', 'kentang', 'kerupuk', 'kopi'
 ]
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 def prepare_image(img_path):
-    """Mempersiapkan gambar untuk prediksi"""
+    """Prepare image for prediction."""
     img = image.load_img(img_path, target_size=(100, 100))
     img_array = image.img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0)
@@ -37,71 +47,65 @@ def prepare_image(img_path):
 
 @app.route('/', methods=['GET'])
 def index():
-    """Halaman utama untuk upload gambar"""
+    """Render upload page."""
     return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    """Endpoint untuk prediksi gambar makanan"""
+    """Predict food and nutrition."""
     if 'file' not in request.files:
-        return jsonify({'error': 'Tidak ada file yang diunggah'})
-    
+        return jsonify({'error': 'No file uploaded'})
+
     file = request.files['file']
-    
+
     if file.filename == '':
-        return jsonify({'error': 'Tidak ada file yang dipilih'})
-    
-    # Simpan file sementara
-    file_path = os.path.join('uploads', file.filename)
+        return jsonify({'error': 'No file selected'})
+
+    if not allowed_file(file.filename):
+        return jsonify({'error': 'Invalid file type. Allowed types: png, jpg, jpeg'})
+
+    # Save the uploaded file
+    filename = secure_filename(file.filename)
+    file_path = os.path.join('uploads', filename)
     file.save(file_path)
-    
+
     try:
-        # Persiapkan gambar
+        # Process image for prediction
         processed_image = prepare_image(file_path)
-        
-        # Prediksi
+
+        # Model 1 Prediction
         predictions = model.predict(processed_image)
-        
-        # Dapatkan label dengan probabilitas tertinggi
         top_prediction_index = np.argmax(predictions[0])
         top_label = CLASS_LABELS[top_prediction_index]
-        
-        # Hapus file sementara
-        os.remove(file_path)
-        
-        data = request.get_json()
-        input_foods = top_label
 
-        # Convert input foods to TF-IDF features
-        input_features = tfidf.transform(input_foods).toarray()
-        
-        # Predict food names
-        predictions = model_2.predict(input_features)
-        predicted_classes = [foods_df.iloc[np.argmax(pred)] for pred in predictions]
-        
-        # Initialize total_nutrition with zero for each nutrient column in standard_nutrition
+        # Model 2 Recommendation
+        input_features = tfidf.transform([top_label]).toarray()
+        recommendations = model_2.predict(input_features)
+        recommended_foods = [foods_df.iloc[np.argmax(rec)] for rec in recommendations]
+
+        # Calculate total nutrition
         total_nutrition = {nutrient: 0 for nutrient in standard_nutrition_df['Nutrisi'] if nutrient in foods_df.columns}
-
-        # Sum nutrition values for detected foods
-        for food in predicted_classes:
+        for food in recommended_foods:
             for nutrient in total_nutrition.keys():
-                total_nutrition[nutrient] += food.get(nutrient, 0)  # Safely sum nutrient values
+                total_nutrition[nutrient] += int(food.get(nutrient, 0))  # Convert to int
 
-        # Evaluate nutrition (dummy function, replace with actual)
-        evaluation = {nutrient: "Sufficient" for nutrient in total_nutrition.keys()}
-        
-        response = total_nutrition
-        
-        
-        return jsonify(response)
-    
+        # Example nutrition evaluation (dummy logic)
+        evaluation = {nutrient: "Sufficient" if value > 0 else "Deficient" for nutrient, value in total_nutrition.items()}
+
+        # Convert all values in total_nutrition to JSON-serializable types
+        total_nutrition = {key: int(value) for key, value in total_nutrition.items()}
+
+        # Clean up file
+        os.remove(file_path)
+
+        return jsonify({'prediction': top_label, 'nutrition': total_nutrition, 'evaluation': evaluation})
+
     except Exception as e:
-        # Hapus file jika terjadi kesalahan
+        logger.error(f"Error during prediction: {e}")
         if os.path.exists(file_path):
             os.remove(file_path)
         return jsonify({'error': str(e)})
 
 if __name__ == '__main__':
-    # Buat direktori uploads jika belum ada
     os.makedirs('uploads', exist_ok=True)
     app.run(host='0.0.0.0', port=5000)
