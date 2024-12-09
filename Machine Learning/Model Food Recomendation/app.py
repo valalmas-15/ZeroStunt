@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from tensorflow.keras.models import load_model
 import random
+import json
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -19,27 +20,29 @@ tfidf = TfidfVectorizer()
 tfidf.fit(foods_df['Menu'])
 
 def choose_three_random_combinations(combinations_df):
-    # Check if there are enough combinations to select three
     if combinations_df.shape[0] < 3:
         return "Not enough valid combinations to provide three unique recommendations."
 
-    # Randomly sample three unique combinations
     random_combinations = combinations_df.sample(n=3).reset_index(drop=True)
-
-    # Create a summary for each selected combination
-    recommendation_summary = "### Three Randomly Selected Food Combinations:\n"
+    recommendation_summary = "## Rekomendasi Tiga Kombinasi Makanan :\n"
     for i in range(3):
-        recommendation_summary += f"\n**Combination {i + 1}:**\n"
-        recommendation_summary += f"- {random_combinations.loc[i, 'Food 1']}\n"
-        recommendation_summary += f"- {random_combinations.loc[i, 'Food 2']}\n"
-        recommendation_summary += f"- {random_combinations.loc[i, 'Food 3']}\n"
-        recommendation_summary += "\nTotal Nutrition:\n"
-        for nutrient, value in random_combinations.loc[i, "Total Nutrition"].items():
-            recommendation_summary += f"{nutrient}: {value}\n"
+        recommendation_summary += f"\n### Combination {i + 1}:\n"
+        recommendation_summary += f"- **Food 1**: {random_combinations.loc[i, 'Food 1']}\n"
+        recommendation_summary += f"- **Food 2**: {random_combinations.loc[i, 'Food 2']}\n"
+        recommendation_summary += f"- **Food 3**: {random_combinations.loc[i, 'Food 3']}\n"
+        
+        try:
+            total_nutrition_dict = json.loads(random_combinations.loc[i, "Total Nutrition"])
+        except json.JSONDecodeError:
+            total_nutrition_dict = {}
+
+        recommendation_summary += "\n**Total Nutrisi**:\n"
+        for nutrient, value in total_nutrition_dict.items():
+            recommendation_summary += f"- {nutrient}: {value}\n"
 
     return recommendation_summary
 
-def generate_summary(evaluation, standard_nutrition):
+def generate_summary(evaluation, total_nutrition, standard_nutrition):
     summary = ""
     recommendations = {
         "increase": [],
@@ -47,7 +50,6 @@ def generate_summary(evaluation, standard_nutrition):
         "maintain": []
     }
 
-    # Convert standard_nutrition DataFrame into a dictionary for quick lookup
     nutrient_info = {
         row['Nutrisi']: {
             "excess_impact": row["Dampak Kelebihan"],
@@ -56,7 +58,6 @@ def generate_summary(evaluation, standard_nutrition):
         } for _, row in standard_nutrition.iterrows()
     }
 
-    # Categorize nutrients based on their evaluation status
     for nutrient, status in evaluation.items():
         if "Deficiency" in status:
             recommendations["increase"].append(nutrient)
@@ -64,75 +65,65 @@ def generate_summary(evaluation, standard_nutrition):
             recommendations["moderate"].append(nutrient)
         elif status == "Sufficient":
             recommendations["maintain"].append(nutrient)
-    
-    # Generate the summary
-    summary += "### Summary of Nutritional Status:\n"
-    
-    # Sufficient Nutrients
-    if recommendations["maintain"]:
-        summary += f"\nSufficient Nutrients:\n"
-        summary += ", ".join(recommendations["maintain"]) + " levels are adequate, indicating the current diet meets the minimum requirements for these nutrients.\n"
-    
-    # Excess Nutrients
-    if recommendations["moderate"]:
-        summary += f"\nExcess Nutrients:\n"
-        for nutrient in recommendations["moderate"]:
-            impact = nutrient_info.get(nutrient, {}).get("excess_impact", "Consider reducing intake to avoid potential health risks.")
-            summary += f"- {nutrient}: {impact}\n"
-    
-    # Deficient Nutrients
-    if recommendations["increase"]:
-        summary += f"\nDeficient Nutrients:\n"
-        for nutrient in recommendations["increase"]:
-            impact = nutrient_info.get(nutrient, {}).get("deficiency_impact", "Increase intake to meet daily requirements.")
-            summary += f"- {nutrient}: {impact}\n"
 
-    # Generate Overall Recommendations
-    summary += "\n### Recommendations:\n"
+    summary += "## Ringkasan Status Gizi\n"
+    summary += "### Total Nutrisi dari Makanan yang Diinput:\n"
+    for nutrient, value in total_nutrition.items():
+        status = evaluation.get(nutrient, "Tidak Diketahui")
+        summary += f"{nutrient}: {value} ({status})\n"
+
+    summary += "\n### Rekomendasi:\n"
     if recommendations["increase"]:
-        summary += "- **Increase** foods rich in: " + ", ".join(recommendations["increase"]) + " to meet daily requirements.\n"
+        summary += f"- **Tingkatkan** makanan yang kaya akan: " + ", ".join(recommendations["increase"]) + " untuk memenuhi kebutuhan harian.\n"
     if recommendations["moderate"]:
-        summary += "- **Moderate** intake of: " + ", ".join(recommendations["moderate"]) + " to avoid potential excesses.\n"
+        summary += f"- **Kurangi** asupan: " + ", ".join(recommendations["moderate"]) + " untuk menghindari kelebihan.\n"
     if recommendations["maintain"]:
-        summary += "- **Maintain** current levels of: " + ", ".join(recommendations["maintain"]) + ".\n"
-    
+        summary += f"- **Pertahankan** tingkat saat ini dari: " + ", ".join(recommendations["maintain"]) + ".\n"
+
     return summary
 
 @app.route('/detect_and_evaluate', methods=['POST'])
-
 def detect_and_evaluate():
     try:
         data = request.get_json()
-        input_foods = data.get('foods', [])
 
-        # Convert input foods to TF-IDF features
-        input_features = tfidf.transform(input_foods).toarray()
+        if not data:
+            return jsonify({"error": "Tidak ada data JSON yang ditemukan dalam permintaan"}), 400
         
-        # Predict food names
+        input_foods = data.get('foods', [])
+        if not input_foods:
+            return jsonify({"error": "Kunci 'foods' hilang atau kosong dalam permintaan"}), 400
+
+        input_features = tfidf.transform(input_foods).toarray()
         predictions = model.predict(input_features)
         predicted_classes = [foods_df.iloc[np.argmax(pred)] for pred in predictions]
-        
-        # Initialize total_nutrition with zero for each nutrient column in standard_nutrition
-        total_nutrition = {nutrient: 0 for nutrient in standard_nutrition_df['Nutrisi'] if nutrient in foods_df.columns}
 
-        # Sum nutrition values for detected foods
+        total_nutrition = {col: 0 for col in foods_df.columns if 'g' in col or 'mg' in col or 'µg' in col}
+
         for food in predicted_classes:
             for nutrient in total_nutrition.keys():
-                total_nutrition[nutrient] += food.get(nutrient, 0)  # Safely sum nutrient values
+                total_nutrition[nutrient] += food.get(nutrient, 0)
 
-        # Evaluate nutrition (dummy function, replace with actual)
-        evaluation = {nutrient: "Sufficient" for nutrient in total_nutrition.keys()}
+        evaluation = {}
+        for nutrient, value in total_nutrition.items():
+            if value < standard_nutrition_df.loc[standard_nutrition_df['Nutrisi'] == nutrient, 'Minimum'].values[0]:
+                evaluation[nutrient] = "Kekurangan"
+            elif value > standard_nutrition_df.loc[standard_nutrition_df['Nutrisi'] == nutrient, 'Maximum'].values[0]:
+                evaluation[nutrient] = "Kelebihan"
+            else:
+                evaluation[nutrient] = "Cukup"
 
-        # Generate summary
-        summary = generate_summary(evaluation, standard_nutrition_df)
+        summary = generate_summary(evaluation, total_nutrition, standard_nutrition_df)
         response = {"summary": summary}
 
         recommendation_food = choose_three_random_combinations(combinations_df)
         response["recommendations"] = recommendation_food
+        response["success"] = True
 
-        return jsonify(response)
+        return jsonify(response), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
