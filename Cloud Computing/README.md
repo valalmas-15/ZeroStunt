@@ -1,6 +1,6 @@
 # ZeroStunt Web Service
 
-ZeroStunt Web Service is a web service that allows you to predict the nutritional value of food by uploading images of foods. It provides three main features:
+ZeroStunt Web Service is a web service that allows you to predict the nutritional value of food by uploading images of food. It provides three main features:
 
 - **Food Image Detector**: Analyzes and predicts the nutritional content of food based on the image provided.
 - **Stunting Detector**: Analyzes food intake and predicts potential stunting risks based on nutritional content.
@@ -8,36 +8,51 @@ ZeroStunt Web Service is a web service that allows you to predict the nutritiona
 
 ## Authentication
 
-To use the ZeroStunt Web Service, you must authenticate first. The authentication is based on a **username and password**. Here's what you need to do:
+To use the ZeroStunt Web Service, you must authenticate first. The authentication is based on a **username and password**. Follow the steps below to register and log in:
 
-1. **Register**: You can create an account using the registration service. Please do not spam the registration service as it can slow down the process and affect performance.
-   
-2. **Login**: Once registered, you can log in with your username and password to access the service.
+1. **Register**: Create an account using the registration service. 
+    - Please **do not spam the registration service** as it can slow down the process and affect performance.
 
-> If you have any suggestions on how to secure the service better, please contact me.
+2. **Login**: After registering, log in using your username and password to access the services.
 
-## Features
+> **Note**: If you have any suggestions for improving security, feel free to contact me.
 
-### 1. **Food Image Detector**  
-Upload an image of food, and the service will analyze it to predict the nutritional content.
+---
 
-### 2. **Stunting Detector**  
-Evaluate the nutritional value of the food to check for any risk of stunting based on the provided food images.
+## Base URL
 
-### 3. **Food Evaluation and Recommendations**  
-After analyzing the food, the service will provide suggestions for improving the nutritional balance.
+The base URL for the service is:  
+`http://localhost:5000/`
 
-## How to Use
+---
 
-1. **Register an Account**:  
-   Use the registration service to create your account.  
-   **Note**: Please use the registration service responsibly to avoid overloading the system.
+## Available Services
 
-2. **Login**:  
-   Use your username and password to log in to the service. This is required to access all features.
+### Authentication Services
 
-3. **Upload Food Image**:  
-   After logging in, upload an image of the food for analysis.
+- **POST** `/register`  
+  Register a new user with the required details.
 
-4. **Get Results**:  
-   The service will evaluate the food image and provide you with nutritional predictions, stunting risk evaluation, and food recommendations.
+- **PUT** `/login`  
+  Log in with your credentials to obtain an authentication token.
+
+- **POST** `/verify-token`  
+  Verify your token to ensure it is valid.
+
+---
+
+### User Management Services
+
+- **GET** `/user/{uid}`  
+  Retrieve user details using the user's unique ID (`uid`).
+
+- **PUT** `/user/{uid}`  
+  Update the user data for a specific user identified by their `uid`.
+
+- **DELETE** `/user/{uid}`  
+  Delete the user account for a given `uid`.
+
+---
+
+## TESTING
+
