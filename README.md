@@ -10,7 +10,7 @@
 ### Member Team
 | **Nama**                        | **ID**           | **Path** | **Universitas**                    | **LinkedIn**                  |
 |----------------------------------|------------------|----------|-------------------------------------|-------------------------------|
-| Muhammad Nauval Almas           | M183B4KY2965     | ML       | Universitas Amikom Yogyakarta      | [LinkedIn]([#](https://www.linkedin.com/in/nauvalalm)                  |
+| Muhammad Nauval Almas           | M183B4KY2965     | ML       | Universitas Amikom Yogyakarta      | [LinkedIn]([(https://www.linkedin.com/in/nauvalalm)]                 |
 | Muhammad Nurkholis              | M183B4KY2981     | ML       | Universitas Amikom Yogyakarta      | [LinkedIn](#)                  |
 | Nasrul Amin Muis                | M183B4KY3251     | ML       | Universitas Amikom Yogyakarta      | [LinkedIn](#)                  |
 | Sanggul Rotua Pakpahan          | C200B4KX4065     | CC       | Universitas Diponegoro             | [LinkedIn](#)                  |
