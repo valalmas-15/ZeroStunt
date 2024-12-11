@@ -1,6 +1,8 @@
-# ZeroStunt
+<h1 align="center">Zero Stunt</h1>
 
-![ZeroStunt Logo](./Mobile%20Development/asset/Logo.png)
+<p align="center">
+  <img src="./Mobile%20Development/asset/Logo.png" alt="ZeroStunt Logo" />
+</p>
 
 **Zero Stunt** is an innovative application that leverages artificial intelligence and image recognition technology to help parents monitor their child's growth and development. The app can predict the risk of stunting based on the child's condition data, detect the nutritional content of baby food using a camera, and provide personalized food recommendations to meet the child's nutritional needs. With features for reminders and regular tracking, Zero Stunt supports parents in ensuring their children receive adequate nutrition for optimal growth.
 
