@@ -2,7 +2,8 @@
 
 ## Overview
 Zero Stunt is an innovative application that leverages artificial intelligence and image recognition technology to help parents monitor their child's growth and development. The app can predict the risk of stunting based on the child's condition data, detect the nutritional content of baby food using a camera, and provide personalized food recommendations to meet the child's nutritional needs. With features for reminders and regular tracking, Zero Stunt supports parents in ensuring their children receive adequate nutrition for optimal growth.
-The app provides :
+
+The app provides:
 - Stunting risk prediction
 - Baby food nutritional content detection
 - Personalized food recommendations
@@ -57,7 +58,6 @@ The app provides :
 - `Material Design`
 - `Circle ImageView`
 
-
 ### Development Tools
 - Android Studio
 - Kotlin
@@ -73,22 +73,21 @@ The app provides :
 4. **Growth Tracking Reminders**: Helps parents monitor child's development
 
 ## Screenshots
-![Main Menu](./assets/home_fragment.png)
 
-### Screenshot 2: Stunting Prediction
-![Stunting Prediction](./assets/tambahda_fragment.png)
+### Row 1
+| ![Main Menu](./assets/home_fragment.png) | ![Stunting Prediction](./assets/tambahda_fragment.png) |
+|------------------------------------------|------------------------------------------------------|
+| Main Menu                                | Stunting Prediction                                 |
 
-### Screenshot 3: Nutritional Analysis
-![Nutritional Analysis](./assets/recom_fragment.png)
+### Row 2
+| ![Nutritional Analysis](./assets/recom_fragment.png) | ![Food Recommendations](./assets/recom_fragment.png) |
+|------------------------------------------------------|----------------------------------------------------|
+| Nutritional Analysis                                | Food Recommendations                              |
 
-### Screenshot 4: Food Recommendations
-![Food Recommendations](./assets/recom_fragment.png)
-
-### Screenshot 5: Notif
-![Growth Tracking](./assets/notif_fragment.png)
-
-### Screenshot 6: 
-![Settings Page](./assets/home_fragment.png)
+### Row 3
+| ![Growth Tracking](./assets/notif_fragment.png) | ![Settings Page](./assets/home_fragment.png) |
+|-------------------------------------------------|-----------------------------------------------|
+| Growth Tracking                                  | Settings Page                                 |
 
 ## Getting Started
 
@@ -102,7 +101,6 @@ The app provides :
 ```bash
 git clone https://github.com/valalmas-15/ZeroStunt
 ```
-
 2. Open the project in Android Studio
 3. Sync Gradle files
 4. Run the application
