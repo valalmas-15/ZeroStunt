@@ -72,6 +72,24 @@ The app provides :
 3. **Personalized Recommendations**: Provides tailored nutritional advice
 4. **Growth Tracking Reminders**: Helps parents monitor child's development
 
+## Screenshots
+![Main Menu](./assets/home_fragment.png)
+
+### Screenshot 2: Stunting Prediction
+![Stunting Prediction](./assets/tambahda_fragment.png)
+
+### Screenshot 3: Nutritional Analysis
+![Nutritional Analysis](./assets/recom_fragment.png)
+
+### Screenshot 4: Food Recommendations
+![Food Recommendations](./assets/recom_fragment.png)
+
+### Screenshot 5: Notif
+![Growth Tracking](./assets/notif_fragment.png)
+
+### Screenshot 6: 
+![Settings Page](./assets/home_fragment.png)
+
 ## Getting Started
 
 ### Prerequisites
