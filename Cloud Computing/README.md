@@ -55,4 +55,5 @@ The base URL for the service is:
 ---
 
 ## TESTING
-
+The testing link can be accessed using the following URL:
+[Register Endpoint](http://34.128.103.130:9000/register)
