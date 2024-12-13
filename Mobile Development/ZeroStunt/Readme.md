@@ -77,7 +77,7 @@ The app provides:
 ### Row 1
 | ![Main Menu](./assets/home_fragment.png) | ![Stunting Prediction](./assets/tambahda_fragment.png) |
 |------------------------------------------|------------------------------------------------------|
-| Main Menu                                | Stunting Prediction                                 |
+| Home Page                                | Stunting Prediction                                 |
 
 ### Row 2
 | ![Nutritional Analysis](./assets/recom_fragment.png) | ![Food Recommendations](./assets/recom_fragment.png) |
