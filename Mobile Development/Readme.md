@@ -75,19 +75,24 @@ The app provides:
 ## Screenshots
 
 ### Row 1
-| ![Main Menu](./assets/home_fragment.png) | ![Stunting Prediction](./assets/tambahda_fragment.png) |
+| ![Main Menu](./zerostunt/assets/home_fragment.png) | ![Stunting Prediction](./zerostunt/assets/tambahda_fragment.png) |
 |------------------------------------------|------------------------------------------------------|
 | Home Page                                | Stunting Prediction                                 |
 
 ### Row 2
-| ![Nutritional Analysis](./assets/recom_fragment.png) | ![Food Recommendations](./assets/recom_fragment.png) |
+| ![Nutritional Analysis](./zerostunt/assets/recom_fragment.png) | ![Food Recommendations](./zerostunt/assets/image.png) |
 |------------------------------------------------------|----------------------------------------------------|
-| Nutritional Analysis                                | Food Recommendations                              |
+| Nutritional Analysis                                | Scan Page                        |
 
 ### Row 3
-| ![Growth Tracking](./assets/notif_fragment.png) | ![Settings Page](./assets/home_fragment.png) |
+| ![Growth Tracking](./zerostunt/assets/notif_fragment.png) | ![Settings Page](./zerostunt/assets/profile_fragment.png) |
 |-------------------------------------------------|-----------------------------------------------|
-| Growth Tracking                                  | Settings Page                                 |
+| Notification Page                                  | Profile Page                                 |
+
+### Row 4
+| ![Growth Tracking](./zerostunt/assets/nutrisi.png) | ![Settings Page](./zerostunt/assets/nutrisiscan.png) |
+|-------------------------------------------------|-----------------------------------------------|
+| Recomendation Result                                  | Scan Result                                  |
 
 ## Getting Started
 
