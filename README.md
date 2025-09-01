@@ -26,4 +26,4 @@
 ## Demo Aplikasi
 
 The demo version of the application will be available soon. Stay tuned for the link:
-[Demo Version](https://drive.google.com/file/d/1EmCCdwOHw9o17pAe7tdxfsqLySUKH2HV/view?usp=sharing)
+[Demo Version](https://youtu.be/fsW3Gq4sl8E?si=fFT2YJr3H-ejE55_)
